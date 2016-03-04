@@ -3,7 +3,7 @@ In this tutorial we are going to be analysing some publicly available data from 
 
 We'll firstly download the raw data which contains the IDAT files using the Bioconductor package GEOquery.
 
-You can load a R package into the R environment using library(name-of-package).
+You can load a R package into the R environment using ```library(name-of-package)```. For example let's load the ```GEOquery``` package
 ```
 library(GEOquery)
 ```
@@ -36,8 +36,21 @@ The idat files have now been gunzip and now we can load the minfi package to imp
 ```
 library(minfi)
 library(IlluminaHumanMethylation450kmanifest)
-RGset <- read.450k.exp('~')
+RGset <- read.450k.exp('~/Tutorial/')
 MSet <- preprocessRaw(RGset)
-BetaMatrix <- getBeta(MSet.raw, type = 'Illumina')
+BetaMatrix <- getBeta(MSet, type = 'Illumina')
 ```
+The BetaMatrix object is large data frame which contains the non-normalised beta values for the 485,512 probes and 8 samples. Beta values range from 0-1 where 0 and 1 indicates that the CpG site is completely unmethylated and methylated respectively.
+
+Before we can start doing some differential methylation analyses we need to normalise the data and check for any outliers.
+
+The Illumina Infinium HumanMethylation450 BeadChip uses two different probe designs which can create some technical variation. In this tutorial we'll be using a normalisation method referred to as BMIQ (Beta MIxture Quantile dilation) which adjusts the data for the two different probe designs followed by quantile normalisation. This method is implemented in the ChAMP package.
+```
+library(ChAMP)
+Norm_Beta_450k <- champ.norm(beta=BetaMatrix, rgSet=FALSE, pd = pd, mset = FALSE,
+                             sampleSheet = FALSE, plotBMIQ = TRUE, 
+                             resultsDir = "~/Tutorial/", filterXY = FALSE)
+```
+
+The champ.norm function can take many arguments. If you are interested in each of these arguments you can run ```?champ.norm``` in the console of RStudio which will display information on the function in the help window.
 
