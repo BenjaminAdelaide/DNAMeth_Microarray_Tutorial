@@ -1,13 +1,9 @@
 # Basic analysis of DNA methylation microarray data
-In this tutorial we are going to be analysing some publicly available data from the Gene Expression Omnibus (http://www.ncbi.nlm.nih.gov/geo/). In particular will be focusing on a study that contains prostate cancer samples from benign and tumour tissues (GSE47915, http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE47915). 
+In this tutorial we are going to be analysing some publicly available data from the Gene Expression Omnibus (http://www.ncbi.nlm.nih.gov/geo/). In particular we'll be focusing on a study that contains prostate cancer samples from benign and tumour tissues (GSE47915, http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE47915). 
 
 We'll firstly download the raw data which contains the IDAT files using the Bioconductor package GEOquery.
 
-You can download GEOquery using biocLite
-```
-biocLite("GEOquery")
-```
-Next load the package into the R environment 
+You can load a R package into the R environment using library(name-of-package).
 ```
 library(GEOquery)
 ```
@@ -25,8 +21,23 @@ pd is a data frame that contains the meta data of the study. You should be able 
 ```
 head(pd)
 ```
-
-
-
-
+To extract the IDAT files from GSE47915.tar we must untar the file using the command below.
+```
+untar(tarfile = 'GSE47915/GSE47915_RAW.tar')
+```
+This has created 8 Grn.idat.gz and 8 Red.idat.gz files which contains the unmethylated and methylated channels for each of the 8 samples. We must gunzip each file such that we can read the files into the R environment.
+```
+idat_files <- list.files(pattern = 'idat.gz')
+for(i in 1:length(idat_files)){
+  gunzip(filename = idat_files[i], destname = gsub("[.]gz$", "", idat_files[i]))
+}
+```
+The idat files have now been gunzip and now we can load the minfi package to import the data. The aim here is to get the methylation level of each CpG site for each sample into a single value. In this tutorial we'll be using the beta value.
+```
+library(minfi)
+library(IlluminaHumanMethylation450kmanifest)
+RGset <- read.450k.exp('~')
+MSet <- preprocessRaw(RGset)
+BetaMatrix <- getBeta(MSet.raw, type = 'Illumina')
+```
 
