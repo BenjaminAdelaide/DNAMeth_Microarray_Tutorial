@@ -70,7 +70,7 @@ For differential methylation analysis we will be using ```limma``` which is comm
 
 We'll firstly create model matrix which will contain the grouping information for each sample. However, let's make sure the order of samples in datMeth matches the order in pd.
 
-Use the ```substr``` function to trim letters off the column names such that they'll match the sample IDs in pd. The use ```match``` to reorder pd to match the order of the samples in datMeth.
+Use the ```substr``` function to trim letters off the column names such that they'll match the sample IDs in pd. Then use ```match``` to reorder pd to match the order of the samples in datMeth.
 ```
 colnames(datMeth) <- substr(x=colnames(datMeth), start=0, stop=10)
 pd <- pd[match(colnames(datMeth), row.names(pd)),]
@@ -102,4 +102,40 @@ heatmap(t(datMatrix))
 dev.off()
 ```
 ![](https://cloud.githubusercontent.com/assets/10754973/13515613/d3b14d16-e202-11e5-835a-4e8a6aeba0d7.png)
+
 The heatmap function also performs unsupervised clustering of the probes and samples.
+
+Finally we can annotate the probes such that we know where they are located and if they are within genes of interest.
+```
+library(IlluminaHumanMethylation450k.db)
+```
+The ```IlluminaHumanMethylation450k.db``` package contains annotation information. For this tutorial we are going to annotate for the chromosomes, co-ordinates and genes, which can be extracted as shown below.
+
+Chromosomes 
+```
+chromosomes <- as.list(IlluminaHumanMethylation450kCHR)
+chromosomes <- data.frame(unlist(chromosomes))
+colnames(chromosomes) <- 'CHR'
+```
+Co-ordinates 
+```
+location <- as.list(IlluminaHumanMethylation450kCPGCOORDINATE)
+location <- data.frame(unlist(location))
+colnames(location) <- 'Co_ordinate'
+```
+Genes
+```
+symbol <- as.list(IlluminaHumanMethylation450kSYMBOL)
+symbol <- data.frame(unlist(symbol))
+colnames(symbol) <- 'ID'
+```
+We can match the row names or probes in each file to annotate the differentially methylated CpG sites
+```
+top$Chr <- chromosomes$CHR[match(row.names(top), row.names(chromosomes))]
+top$Position <- location$Co_ordinate[match(row.names(top), row.names(location))]
+top$Gene <- symbol$ID[match(row.names(top), row.names(symbol))]
+```
+To finish we can create an excel file with our list of differentially methylated CpG sites.
+```
+write.csv(top, file = 'Diff_meth.csv')
+```
