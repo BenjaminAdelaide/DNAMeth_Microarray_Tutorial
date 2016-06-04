@@ -89,6 +89,7 @@ design <- model.matrix(~group)
 ```
 Using limma we can now produce a list of differentially methylated CpG sites.
 ```
+library(limma)
 fit.reduced <- lmFit(datMeth,design)
 fit.reduced <- eBayes(fit.reduced)
 top <- topTable(fit.reduced, number=50)
